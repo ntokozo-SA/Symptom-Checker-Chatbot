@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symptom Checker Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .disclaimer {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 10px;
+            font-size: 0.9em;
+        }
+
+        .input-section {
+            padding: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            width: 100%;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+        }
+
+        .button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-section {
+            padding: 0 30px 30px;
+            display: none;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+        }
+
+        .urgent {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .result-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .conditions-list {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+
+        .conditions-list li {
+            background: white;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .advice {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .urgent-warning {
+            background: #dc3545;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .sample-symptoms {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .sample-symptoms h4 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .sample-symptoms ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .sample-symptoms li {
+            background: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .sample-symptoms li:hover {
+            background: #e3f2fd;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .input-section, .result-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Symptom Checker</h1>
+            <p>AI-powered symptom analysis and medical advice</p>
+        </div>
+
+        <div class="disclaimer">
+            ⚠️ <strong>Disclaimer:</strong> This is a demo application for educational purposes only. 
+            It should NOT be used for actual medical diagnosis. Always consult with qualified healthcare professionals for medical advice.
+        </div>
+
+        <div class="input-section">
+            <div class="input-group">
+                <label for="symptoms">Describe your symptoms:</label>
+                <textarea 
+                    id="symptoms" 
+                    placeholder="Example: I have a headache and fever, feeling dizzy..."
+                    rows="4"
+                ></textarea>
+            </div>
+
+            <button class="button" onclick="checkSymptoms()" id="checkButton">
+                🔍 Check Symptoms
+            </button>
+
+            <div class="sample-symptoms">
+                <h4>💡 Try these sample symptoms:</h4>
+                <ul>
+                    <li onclick="setSymptom('I have a headache')">Headache</li>
+                    <li onclick="setSymptom('I have chest pain')">Chest Pain</li>
+                    <li onclick="setSymptom('I have a fever and cough')">Fever & Cough</li>
+                    <li onclick="setSymptom('I have shortness of breath')">Shortness of Breath</li>
+                    <li onclick="setSymptom('I have stomach pain')">Stomach Pain</li>
+                    <li onclick="setSymptom('I have dizziness and nausea')">Dizziness & Nausea</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="result-section" id="resultSection">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing your symptoms...</p>
+            </div>
+
+            <div class="result-card" id="resultCard" style="display: none;">
+                <div class="result-title">📋 Analysis Results</div>
+                
+                <div id="conditionsSection">
+                    <h4>Possible Conditions:</h4>
+                    <ul class="conditions-list" id="conditionsList"></ul>
+                </div>
+
+                <div id="adviceSection">
+                    <h4>💡 Medical Advice:</h4>
+                    <div class="advice" id="adviceText"></div>
+                </div>
+
+                <div id="urgentSection" style="display: none;">
+                    <div class="urgent-warning">
+                        🚨 URGENT: Seek immediate medical attention!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:5000';
+
+        function setSymptom(symptom) {
+            document.getElementById('symptoms').value = symptom;
+        }
+
+        async function checkSymptoms() {
+            const symptoms = document.getElementById('symptoms').value.trim();
+            
+            if (!symptoms) {
+                alert('Please describe your symptoms');
+                return;
+            }
+
+            // Show loading state
+            const resultSection = document.getElementById('resultSection');
+            const loading = document.getElementById('loading');
+            const resultCard = document.getElementById('resultCard');
+            const checkButton = document.getElementById('checkButton');
+
+            resultSection.style.display = 'block';
+            loading.style.display = 'block';
+            resultCard.style.display = 'none';
+            checkButton.disabled = true;
+            checkButton.textContent = '⏳ Processing...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/check-symptoms`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ input: symptoms })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                displayResults(data);
+
+            } catch (error) {
+                console.error('Error:', error);
+                displayError('Failed to connect to the API. Please make sure the server is running on localhost:5000');
+            } finally {
+                loading.style.display = 'none';
+                checkButton.disabled = false;
+                checkButton.textContent = '🔍 Check Symptoms';
+            }
+        }
+
+        function displayResults(data) {
+            const resultCard = document.getElementById('resultCard');
+            const conditionsList = document.getElementById('conditionsList');
+            const adviceText = document.getElementById('adviceText');
+            const urgentSection = document.getElementById('urgentSection');
+
+            // Display conditions
+            conditionsList.innerHTML = '';
+            data.conditions.forEach(condition => {
+                const li = document.createElement('li');
+                li.textContent = condition;
+                conditionsList.appendChild(li);
+            });
+
+            // Display advice
+            adviceText.textContent = data.advice;
+
+            // Show urgent warning if needed
+            if (data.urgent) {
+                urgentSection.style.display = 'block';
+                resultCard.classList.add('urgent');
+            } else {
+                urgentSection.style.display = 'none';
+                resultCard.classList.remove('urgent');
+            }
+
+            resultCard.style.display = 'block';
+        }
+
+        function displayError(message) {
+            const resultCard = document.getElementById('resultCard');
+            const conditionsList = document.getElementById('conditionsList');
+            const adviceText = document.getElementById('adviceText');
+            const urgentSection = document.getElementById('urgentSection');
+
+            conditionsList.innerHTML = '<li style="color: #dc3545;">Error: Could not analyze symptoms</li>';
+            adviceText.textContent = message;
+            urgentSection.style.display = 'none';
+            resultCard.classList.remove('urgent');
+
+            resultCard.style.display = 'block';
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('symptoms').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                checkSymptoms();
+            }
+        });
+    </script>
+</body>
+</html> 
